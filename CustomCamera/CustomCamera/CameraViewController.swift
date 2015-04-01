@@ -15,7 +15,7 @@ public class CameraViewController: UIViewController {
     
     public override func viewDidLoad() {
         checkDeviceAuthorizationStatus()
-        cameraWriter = CameraVideoWriter()
+        cameraWriter = CameraVideoFileWriter()
         super.viewDidLoad()
     }
     

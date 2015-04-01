@@ -40,6 +40,20 @@ public class AbstractCameraWriter: NSObject, CameraWriter {
         }
     }
     
+    public func startRunning() {
+        println("start running")
+        dispatch_async(sessionQueue, { () -> Void in
+            self.session.startRunning()
+        })
+    }
+    
+    public func stopRunning() {
+        println("stop running")
+        dispatch_async(sessionQueue, { () -> Void in
+            self.session.stopRunning()
+        })
+    }
+    
     internal func configureAVCaptureConnection(connection: AVCaptureConnection!) {
         if connection.supportsVideoOrientation {
             orientation                 = DeviceUtil.getVideoOrientation(UIDevice.currentDevice().orientation)

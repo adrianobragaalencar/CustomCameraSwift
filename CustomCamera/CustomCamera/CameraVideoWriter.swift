@@ -56,20 +56,6 @@ public class CameraVideoWriter: AbstractCameraWriter, AVCaptureVideoDataOutputSa
         });
     }
     
-    public func startRunning() {
-        println("start running")
-        dispatch_async(sessionQueue, { () -> Void in
-            self.session.startRunning()
-        })
-    }
-    
-    public func stopRunning() {
-        println("stop running")
-        dispatch_async(sessionQueue, { () -> Void in
-            self.session.stopRunning()
-        })
-    }
-    
     public func saveVideo(completion: DidVideoSave) {
         println("stop recording video")
         println("start saving video")
