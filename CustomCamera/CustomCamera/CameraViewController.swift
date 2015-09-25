@@ -11,29 +11,29 @@ import AVFoundation
 
 public class CameraViewController: UIViewController {
 
-    private var cameraWriter: CameraWriter!
+    private var cameraRecorder: ICameraRecorder!
     
     public override func viewDidLoad() {
-        checkDeviceAuthorizationStatus()
-        cameraWriter = CameraVideoFileWriter()
         super.viewDidLoad()
+        checkDeviceAuthorizationStatus()
+        cameraRecorder = CameraRecorder()
     }
     
     public override func viewWillAppear(animated: Bool) {
-        cameraWriter.configure { (orientation) -> Void in
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                let cameraView: CameraPreviewView = self.view! as CameraPreviewView
-                cameraView.setOrientation(orientation)
-                cameraView.setSession(self.cameraWriter.session)
-                self.cameraWriter.startRunning!()
-            })
-        }
         super.viewWillAppear(animated)
+        cameraRecorder.configure(.LandscapeRight, completeHandler: { () -> Void in
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                let cameraPreview = self.view as! CameraPreviewView
+                cameraPreview.orientation = .LandscapeRight
+                cameraPreview.session = self.cameraRecorder.session
+                self.cameraRecorder.startPreview()
+            })
+        })
     }
     
     public override func viewDidDisappear(animated: Bool) {
-        cameraWriter.stopRunning!()
         super.viewDidDisappear(animated)
+        cameraRecorder.stopPreview()
     }
     
     private func checkDeviceAuthorizationStatus() {
@@ -51,14 +51,14 @@ public class CameraViewController: UIViewController {
     }
     
     @IBAction func buttonRecordTapped(sender: AnyObject) {
-        if cameraWriter.recording {
-            cameraWriter.saveVideo!({ (url) -> Void in
-                DeviceUtil.exportVideoToAlbum(url, completion: { () -> Void in
+        if cameraRecorder.recording {
+            cameraRecorder.stopRecord({ (filepath) -> Void in
+                DeviceUtil.exportVideoToAlbum(filepath, completion: { () -> Void in
                     exit(0)
                 });
             })
         } else {
-            cameraWriter.recordVideo!()
+            cameraRecorder.startRecord()
         }
     }
 }

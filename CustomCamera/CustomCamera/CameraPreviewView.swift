@@ -9,35 +9,30 @@
 import UIKit
 import AVFoundation
 
-public class CameraPreviewView: UIView {
-
-    private var session: AVCaptureSession!
-    private var orientation: AVCaptureVideoOrientation!
+public final class CameraPreviewView: UIView {
     
-    public required init(coder aDecoder: NSCoder) {
+    public var orientation: AVCaptureVideoOrientation?
+    public var session: AVCaptureSession? {
+        get {
+            let previewLayer = layer as! AVCaptureVideoPreviewLayer
+            return previewLayer.session
+        }
+        set {
+            let previewLayer = layer as! AVCaptureVideoPreviewLayer
+            previewLayer.session = newValue
+            previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
+            if previewLayer.connection.supportsVideoOrientation {
+                previewLayer.connection.videoOrientation = orientation ?? .LandscapeRight
+            }
+        }
+    }
+    
+    public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
-        self.orientation = .LandscapeRight
+        orientation = .LandscapeRight
     }
     
     public class override func layerClass() -> AnyClass {
         return AVCaptureVideoPreviewLayer.self
-    }
-    
-    public func getSession() -> AVCaptureSession! {
-        var previewLayer: AVCaptureVideoPreviewLayer = self.layer as AVCaptureVideoPreviewLayer;
-        return previewLayer.session
-    }
-    
-    public func setSession(session: AVCaptureSession!) {
-        var previewLayer: AVCaptureVideoPreviewLayer  = self.layer as AVCaptureVideoPreviewLayer;
-        previewLayer.session                          = session;
-        previewLayer.videoGravity                     = AVLayerVideoGravityResizeAspectFill;
-        if previewLayer.connection!.supportsVideoOrientation {
-            previewLayer.connection!.videoOrientation = self.orientation
-        }
-    }
-    
-    public func setOrientation(orientation: AVCaptureVideoOrientation) {
-        self.orientation = orientation
     }
 }
