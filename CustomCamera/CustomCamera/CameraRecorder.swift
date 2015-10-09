@@ -11,57 +11,46 @@ import AVFoundation
 
 public class CameraRecorder: NSObject, ICameraRecorder {
     
-    private static let Formatter: NSDateFormatter = {
-        let formatter = NSDateFormatter()
-        formatter.dateFormat = "MMMM_dd_yyyy_hh:mm:ss"
-        return formatter
-        }()
     public var session: AVCaptureSession!
     public var recording: Bool = false
-    private let videoSettings = [
-        AVVideoCodecKey : AVVideoCodecH264,
-        AVVideoWidthKey : "1280",
-        AVVideoHeightKey : "780",
-        AVVideoCompressionPropertiesKey : [
-            AVVideoAverageBitRateKey : "1680000",
-            AVVideoProfileLevelKey : AVVideoProfileLevelH264HighAutoLevel
-        ]
-    ]
     private let sessionQueue = dispatch_queue_create("SessionQueue", DISPATCH_QUEUE_SERIAL)
-
     private var deviceInput: AVCaptureDeviceInput!
-    private var videoDataOutput: AVCaptureMovieFileOutput!
-    private var fileOutputPath: String!
-    private var completeHandler: StopRecordHandler?
+    private var captureOutput: AVCaptureOutput!
+    private var writer: AVAssetWriter!
+    private var writerInput: AVAssetWriterInput!
+    private var orientation: AVCaptureVideoOrientation!
+    private var connection: AVCaptureConnection!
+    private var mediaType: MediaType!
+    private var position = AVCaptureDevicePosition.Back
+    private var fileUrl: NSURL!
     
-    public override init() {
-        super.init()
-        let tempDir: NSString = NSTemporaryDirectory()
-        fileOutputPath = tempDir.stringByAppendingPathComponent(createFileName())
+    public func configure(mediaType: MediaType, orientation: AVCaptureVideoOrientation, completeHandler: ConfigureHandler) {
+        self.mediaType = mediaType
+        self.orientation = orientation
+        session = AVCaptureSession()
+        setSessionPreset(mediaType == .Photo ?
+            AVCaptureSessionPresetPhoto :
+            AVCaptureSessionPresetHigh)
+        configureCamera(mediaType, position: position)
+        completeHandler()
     }
     
-    public func configure(orientation: AVCaptureVideoOrientation, completeHandler: ConfigureHandler) {
-        session = AVCaptureSession()
-        if session.canSetSessionPreset(AVCaptureSessionPresetHigh) {
-            session.sessionPreset = AVCaptureSessionPresetHigh
-        }
-        let device = DeviceUtil.deviceWithMediaType(AVMediaTypeVideo, position: .Back)
-        do {
-            deviceInput = try AVCaptureDeviceInput(device: device)
-            videoDataOutput = AVCaptureMovieFileOutput()
-            if session.canAddInput(deviceInput) {
-                session.addInput(deviceInput)
+    public func reverse() {
+        position = position == .Back ? .Front : .Back
+        configureCamera(mediaType, position: position)
+    }
+    
+    public func takePicture() {
+        if let stillImageOutput = captureOutput as! AVCaptureStillImageOutput! {
+            // predefined CameraShutter sound
+            // http://iphonedevwiki.net/index.php/AudioServices
+            AudioServicesPlaySystemSound(1108)
+            stillImageOutput.captureStillImageAsynchronouslyFromConnection(connection) { (sampleBuffer, error) -> Void in
+                let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(sampleBuffer)
+                let data = UIImageJPEGRepresentation(UIImage(data: imageData)!, 1)
+                data?.writeToFile(NameGeneratorUtil.generateFilenameAtTempDir(PhotoExtension), atomically: true)
             }
-            if session.canAddOutput(videoDataOutput) {
-                session.addOutput(videoDataOutput)
-                let connection = videoDataOutput.connectionWithMediaType(AVMediaTypeVideo)
-                if connection.supportsVideoOrientation {
-                    connection.videoOrientation = orientation
-                }
-            }
-        } catch {
         }
-        completeHandler()
     }
     
     public func startPreview() {
@@ -77,36 +66,97 @@ public class CameraRecorder: NSObject, ICameraRecorder {
     }
     
     public func startRecord() {
+        fileUrl = NSURL(fileURLWithPath: NameGeneratorUtil.generateFilenameAtTempDir(VideoExtension))
         dispatch_async(sessionQueue, { () -> Void in
-            let url = NSURL(fileURLWithPath: self.fileOutputPath)
-            self.recording = true
-            self.videoDataOutput.startRecordingToOutputFileURL(url, recordingDelegate: self)
+            do {
+                self.writer = try AVAssetWriter(URL: self.fileUrl, fileType: AVFileTypeQuickTimeMovie)
+                self.writerInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: VideoSettings)
+                if self.writer.canAddInput(self.writerInput) {
+                    self.writer.addInput(self.writerInput)
+                }
+                self.recording = true
+            } catch let error as NSError {
+                print(error.localizedDescription)
+            }
         })
     }
     
     public func stopRecord(completeHandler: StopRecordHandler) {
+        self.recording = false
         dispatch_async(sessionQueue, { () -> Void in
-            self.recording = false
-            self.completeHandler = completeHandler
-            self.videoDataOutput.stopRecording()
+            self.writerInput.markAsFinished()
+            self.writer.finishWritingWithCompletionHandler({ () -> Void in
+                completeHandler(url: self.fileUrl)
+            })
         })
     }
     
-    private func createFileName() -> String {
-        let date = NSDate()
-        let dateFormat = CameraRecorder.Formatter.stringFromDate(date)
-        return "\(dateFormat).mov"
+    private func configureCamera(mediaType: MediaType, position: AVCaptureDevicePosition) {
+        let device = DeviceUtil.deviceWithMediaType(AVMediaTypeVideo, position: position)
+        do {
+            session.removeInput(deviceInput)
+            session.removeOutput(captureOutput)
+            deviceInput = try AVCaptureDeviceInput(device: device)
+            captureOutput = createCaptureOutput(mediaType)
+            if session.canAddInput(deviceInput) {
+                session.addInput(deviceInput)
+            }
+            if session.canAddOutput(captureOutput) {
+                session.addOutput(captureOutput)
+                connection = captureOutput.connectionWithMediaType(AVMediaTypeVideo)
+                if connection.supportsVideoOrientation {
+                    connection.videoOrientation = orientation
+                }
+            }
+        } catch let error as NSError {
+            print(error.localizedDescription)
+        }
+    }
+    
+    private func createCaptureOutput(mediaType: MediaType) -> AVCaptureOutput! {
+        if mediaType == .Photo {
+            let stillImageOutput = AVCaptureStillImageOutput()
+            stillImageOutput.outputSettings = PhotoSettings
+            return stillImageOutput
+        } else {
+            let videoDataOutput = AVCaptureVideoDataOutput()
+            videoDataOutput.setSampleBufferDelegate(self, queue: sessionQueue)
+            return videoDataOutput
+        }
+    }
+    
+    private func setSessionPreset(preset: String) {
+        if session.canSetSessionPreset(preset) {
+            session.sessionPreset = preset
+        }
     }
 }
 
-// MARK: AVCaptureFileOutputRecordingDelegate Protocol
+// MARK: AVCaptureVideoDataOutputSampleBufferDelegate Protocol
 
-extension CameraRecorder : AVCaptureFileOutputRecordingDelegate {
+extension CameraRecorder : AVCaptureVideoDataOutputSampleBufferDelegate {
     
-    public func captureOutput(captureOutput: AVCaptureFileOutput!, didFinishRecordingToOutputFileAtURL outputFileURL: NSURL!, fromConnections connections: [AnyObject]!, error: NSError!) {
-        if let handler = completeHandler {
-            handler(fileUrl: outputFileURL)
-        }
+    public func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
+        dispatch_async(sessionQueue, { () -> Void in
+            if let writer = self.writer {
+                switch writer.status {
+                case .Unknown:
+                    if self.recording && writer.startWriting() {
+                        writer.startSessionAtSourceTime(CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+                    }
+                case .Writing:
+                    if self.writerInput.readyForMoreMediaData {
+                        self.writerInput.appendSampleBuffer(sampleBuffer)
+                    }
+                case .Cancelled:
+                    print("Cancelled")
+                case .Completed:
+                    print("Completed")
+                case .Failed:
+                    print("Failed")
+                }
+            }
+        })
     }
 }
 

@@ -16,6 +16,8 @@
 		B961ED721AC9F451001A32E4 /* DeviceUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = B961ED711AC9F451001A32E4 /* DeviceUtil.swift */; };
 		B961ED781AC9F5CA001A32E4 /* CameraRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B961ED771AC9F5CA001A32E4 /* CameraRecorder.swift */; };
 		B9A092991ACB382C00A487CF /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A092981ACB382C00A487CF /* CameraPreviewView.swift */; };
+		EDA1CC481BC7FF1A00CACA21 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1CC471BC7FF1A00CACA21 /* Constants.swift */; settings = {ASSET_TAGS = (); }; };
+		EDA1CC4A1BC7FF9700CACA21 /* NameGeneratorUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1CC491BC7FF9700CACA21 /* NameGeneratorUtil.swift */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,6 +44,8 @@
 		B961ED711AC9F451001A32E4 /* DeviceUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceUtil.swift; sourceTree = "<group>"; };
 		B961ED771AC9F5CA001A32E4 /* CameraRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraRecorder.swift; sourceTree = "<group>"; };
 		B9A092981ACB382C00A487CF /* CameraPreviewView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
+		EDA1CC471BC7FF1A00CACA21 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		EDA1CC491BC7FF9700CACA21 /* NameGeneratorUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NameGeneratorUtil.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,6 +128,7 @@
 			isa = PBXGroup;
 			children = (
 				B961ED481AC9EF3C001A32E4 /* AppDelegate.swift */,
+				EDA1CC471BC7FF1A00CACA21 /* Constants.swift */,
 			);
 			name = AppDelegate;
 			sourceTree = "<group>";
@@ -157,6 +162,7 @@
 			isa = PBXGroup;
 			children = (
 				B961ED711AC9F451001A32E4 /* DeviceUtil.swift */,
+				EDA1CC491BC7FF9700CACA21 /* NameGeneratorUtil.swift */,
 			);
 			name = Util;
 			sourceTree = "<group>";
@@ -228,6 +234,7 @@
 				TargetAttributes = {
 					B961ED421AC9EF3C001A32E4 = {
 						CreatedOnToolsVersion = 6.2;
+						DevelopmentTeam = BNZR7JMHV6;
 					};
 					B961ED571AC9EF3D001A32E4 = {
 						CreatedOnToolsVersion = 6.2;
@@ -278,10 +285,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EDA1CC4A1BC7FF9700CACA21 /* NameGeneratorUtil.swift in Sources */,
 				B9A092991ACB382C00A487CF /* CameraPreviewView.swift in Sources */,
 				B961ED781AC9F5CA001A32E4 /* CameraRecorder.swift in Sources */,
 				B961ED4B1AC9EF3D001A32E4 /* CameraViewController.swift in Sources */,
 				B961ED721AC9F451001A32E4 /* DeviceUtil.swift in Sources */,
+				EDA1CC481BC7FF1A00CACA21 /* Constants.swift in Sources */,
 				B961ED491AC9EF3D001A32E4 /* AppDelegate.swift in Sources */,
 				B961ED701AC9F159001A32E4 /* ICameraRecorder.swift in Sources */,
 			);
@@ -399,11 +408,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = CustomCamera/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.yattatech.sample.camera.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -412,11 +424,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = CustomCamera/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.yattatech.sample.camera.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

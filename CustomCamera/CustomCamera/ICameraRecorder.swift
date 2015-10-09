@@ -10,16 +10,23 @@ import Foundation
 import AVFoundation
 
 public typealias ConfigureHandler  = () -> Void
-public typealias StopRecordHandler = (fileUrl: NSURL) -> Void
+public typealias StopRecordHandler = (url: NSURL) -> Void
+
+public enum MediaType : Int {
+    case Photo
+    case Video
+}
 
 public protocol ICameraRecorder : class {
 
     var session: AVCaptureSession! { get }
     var recording: Bool { get }
     
-    func configure(orientation: AVCaptureVideoOrientation, completeHandler: ConfigureHandler)
+    func configure(mediaType: MediaType, orientation: AVCaptureVideoOrientation, completeHandler: ConfigureHandler)
+    func reverse()
     func startPreview()
     func stopPreview()
+    func takePicture()
     func startRecord()
     func stopRecord(completeHandler: StopRecordHandler)
 }

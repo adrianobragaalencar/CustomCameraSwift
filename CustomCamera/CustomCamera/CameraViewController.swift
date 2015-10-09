@@ -21,7 +21,7 @@ public class CameraViewController: UIViewController {
     
     public override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        cameraRecorder.configure(.LandscapeRight, completeHandler: { () -> Void in
+        cameraRecorder.configure(.Video, orientation: .LandscapeRight, completeHandler: { () -> Void in
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 let cameraPreview = self.view as! CameraPreviewView
                 cameraPreview.orientation = .LandscapeRight
